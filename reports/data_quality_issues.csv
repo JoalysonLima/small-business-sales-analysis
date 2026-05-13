@@ -1,0 +1,12 @@
+issue,affected_columns,detected_problem,recommended_action
+Duplicated rows,All columns,12,Remove exact duplicated rows
+Missing customer names,customer_name,8,Fill with 'Unknown'
+Missing cities,city,6,Fill with 'Unknown'
+Missing unit prices,unit_price,4,Infer price from product name when possible
+Missing discount percentages,discount_percent,5,Fill missing discounts with 0
+Invalid quantities,quantity,6,Remove rows with quantity <= 0
+Invalid discounts,discount_percent,6,Replace invalid discounts with 0 or review/remove
+Date stored as text,order_date,Needs datetime conversion,Convert to datetime
+Inconsistent product names,product_name,Extra spaces and case inconsistencies,Standardize product names
+Inconsistent category names,category,Extra spaces and case inconsistencies,Standardize category names
+Inconsistent sales channel labels,sales_channel,Alternative labels and case inconsistencies,Map values to standard channel names
