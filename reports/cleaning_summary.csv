@@ -1,0 +1,10 @@
+metric,before_cleaning,after_cleaning
+Rows,5012,4994
+Columns,12,20
+Duplicated rows,12,0
+Missing customer names,8,0
+Missing cities,6,0
+Missing unit prices,4,0
+Missing discounts,5,0
+Invalid quantities,6,0
+Invalid discounts,6,0
