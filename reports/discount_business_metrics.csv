@@ -1,0 +1,3 @@
+discount_group,net_revenue,gross_revenue,total_discount,total_orders,total_units,average_discount_percent,revenue_share_pct,average_order_value,discount_rate
+Non-Discounted Orders,202929.25,202929.25,0.0,2112,4875,0.0,45.08,96.08,0.0
+Discounted Orders,247175.6,282240.57,35065.19,2882,6843,12.470506592643996,54.92,85.77,12.42

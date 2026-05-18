@@ -1,0 +1,4 @@
+sales_channel,net_revenue,gross_revenue,total_discount,total_orders,total_units,revenue_share_pct,average_order_value,discount_rate
+Physical Store,199980.83,215814.04,15833.3,2219,5196,44.43,90.12,7.34
+Online Store,182475.4,196835.77,14360.5,2021,4723,40.54,90.29,7.3
+Marketplace,67648.62,72520.01,4871.39,754,1799,15.03,89.72,6.72

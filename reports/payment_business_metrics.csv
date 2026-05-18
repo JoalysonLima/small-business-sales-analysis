@@ -1,0 +1,6 @@
+payment_method,net_revenue,total_orders,total_units,revenue_share_pct,order_share_pct
+Cash,97749.59,1056,2463,21.72,21.15
+Bank Transfer,87485.52,998,2321,19.44,19.98
+Debit Card,88505.79,995,2323,19.66,19.92
+PayPal,90881.3,987,2389,20.19,19.76
+Credit Card,85482.65,958,2222,18.99,19.18

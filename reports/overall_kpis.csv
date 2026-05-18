@@ -1,0 +1,12 @@
+metric,value,business_meaning
+Gross Revenue,"£485,170",Total sales value before discounts.
+Net Revenue,"£450,105",Actual sales value after discounts.
+Total Discount,"£35,065",Total amount deducted through discounts.
+Discount Rate,7.23%,Share of gross revenue lost to discounts.
+Total Orders,"4,994",Number of unique orders.
+Total Units Sold,"11,718",Total number of items sold.
+Total Customers,150,Number of unique customers.
+Average Order Value,£90,Average revenue generated per order.
+Average Units per Order,2.35,Average number of items sold per order.
+Revenue per Customer,"£3,001",Average revenue generated per customer.
+Average Discount Percentage,7.20%,Average discount percentage applied to transactions.
