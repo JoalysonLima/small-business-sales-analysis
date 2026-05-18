@@ -1,0 +1,8 @@
+figure_file,business_question
+monthly_net_revenue.png,How did net revenue evolve over time?
+net_revenue_by_category.png,Which product categories generated the most revenue?
+top_products_by_revenue.png,Which products generated the most revenue?
+net_revenue_by_sales_channel.png,Which sales channel performed best?
+gross_vs_net_revenue_over_time.png,How much did discounts affect revenue over time?
+net_revenue_by_city.png,Which cities generated the most revenue?
+net_revenue_by_discount_percentage.png,How is revenue distributed across discount levels?

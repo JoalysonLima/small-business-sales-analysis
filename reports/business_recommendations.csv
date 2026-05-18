@@ -1,0 +1,10 @@
+area,recommendation,priority
+Overall Performance,"Create a simple monthly KPI dashboard to track net revenue, orders, average order value, discounts, and units sold.",High
+Category Performance,"Prioritize Outerwear in stock planning and product visibility, while monitoring dependency on this category.",High
+Product Performance,Ensure Winter Jacket remains consistently available and visible across the strongest channels.,High
+Product Concentration,"Protect the top-selling products, but test ways to grow secondary products to reduce revenue concentration risk.",High
+Discounts,"Do not increase discounts automatically. First compare margin, order volume, and average order value between discounted and non-discounted orders.",High
+Sales Channel,Review why Physical Store performs well and consider prioritizing it in future campaigns.,High
+Monthly Performance,Review sales activity in 2025-04 and 2025-06 to identify possible drivers of stronger and weaker performance.,Medium
+Location,Consider targeted campaigns or local offers for customers in Glasgow.,Medium
+Payment Methods,"Keep all major payment methods available, since customer payment behavior is not concentrated in a single option.",Low
