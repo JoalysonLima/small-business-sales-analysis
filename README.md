@@ -187,9 +187,8 @@ jupyter notebook notebooks/01_sales_cleaning_analysis.ipynb
 
 ## Final Report
 
-```markdown
 [View Final Report](reports/final_report.md)
-```
+
 
 ## Repository Structure
 
