@@ -139,6 +139,51 @@ Based on the analysis, the business should:
 
 ![Gross Revenue vs Net Revenue](reports/figures/gross_vs_net_revenue_over_time.png)
 
+## How to Run This Project
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/JoalysonLima/small-business-sales-analysis.git
+
+2. Navigate to the project folder:
+
+```bash
+cd small-business-sales-analysis
+
+3. Create a virtual environment:
+
+```bash
+python -m venv .venv
+
+4. Activate the virtual environment.
+
+On Windows:
+
+```bash
+.venv\Scripts\activate
+
+On macOS/Linux:
+
+```bash
+source .venv/bin/activate
+
+5. Install the required dependencies:
+
+```bash
+pip install -r requirements.txt
+
+6. Open the Jupyter Notebook:
+
+```bash
+jupyter notebook notebooks/01_sales_cleaning_analysis.ipynb
+
+
+## Final Report
+
+```markdown
+[View Final Report](reports/final_report.md)
+
 ## Repository Structure
 
 ```text
