@@ -282,17 +282,17 @@ def apply_plotly_layout(fig: go.Figure, height: int = 420) -> go.Figure:
         plot_bgcolor="white",
         paper_bgcolor="white",
         font=dict(color=TEXT_DARK, family="Arial"),
-        margin=dict(l=20, r=20, t=50, b=20),
+        margin=dict(l=20, r=20, t=60, b=40),
         legend=dict(
             orientation="h",
             yanchor="bottom",
-            y=1.02,
-            xanchor="right",
-            x=1,
+            y=-0.22,
+            xanchor="center",
+            x=0.5,
             font=dict(size=11),
         ),
         title=dict(
-            font=dict(size=18, color=TEXT_DARK),
+            font=dict(size=17, color=TEXT_DARK),
             x=0,
             xanchor="left",
         ),
@@ -309,6 +309,7 @@ def apply_plotly_layout(fig: go.Figure, height: int = 420) -> go.Figure:
         linecolor=BORDER,
         tickfont=dict(color=TEXT_MUTED),
         title_font=dict(color=TEXT_MUTED),
+        automargin=True,
     )
 
     fig.update_yaxes(
@@ -317,6 +318,7 @@ def apply_plotly_layout(fig: go.Figure, height: int = 420) -> go.Figure:
         linecolor=BORDER,
         tickfont=dict(color=TEXT_MUTED),
         title_font=dict(color=TEXT_MUTED),
+        automargin=True,
     )
 
     return fig
@@ -376,11 +378,20 @@ filter_options = get_filter_options(df)
 min_date = df["order_date"].min().date()
 max_date = df["order_date"].max().date()
 
+if "date_range" not in st.session_state:
+    st.session_state["date_range"] = (min_date, max_date)
+
+clear_date_filter = st.sidebar.button("Clear date filter")
+
+if clear_date_filter:
+    st.session_state["date_range"] = (min_date, max_date)
+
 selected_date_range = st.sidebar.date_input(
     "Date range",
-    value=(min_date, max_date),
+    value=st.session_state["date_range"],
     min_value=min_date,
     max_value=max_date,
+    key="date_range",
 )
 
 if isinstance(selected_date_range, tuple) and len(selected_date_range) == 2:
@@ -631,13 +642,13 @@ with right_col:
     )
 
     fig_channel.update_traces(
-        textposition="outside",
-        textinfo="percent+label",
+        textposition="inside",
+        textinfo="percent",
         hovertemplate="<b>%{label}</b><br>Net revenue: £%{value:,.2f}<br>Share: %{percent}<extra></extra>",
     )
 
     fig_channel.update_layout(
-        showlegend=False,
+        showlegend=True,
         annotations=[
             dict(
                 text="Revenue<br>Share",
@@ -869,13 +880,13 @@ with payment_col:
     )
 
     fig_payment.update_traces(
-        textposition="outside",
-        textinfo="percent+label",
+        textposition="inside",
+        textinfo="percent",
         hovertemplate="<b>%{label}</b><br>Net revenue: £%{value:,.2f}<br>Share: %{percent}<extra></extra>",
     )
 
     fig_payment.update_layout(
-        showlegend=False,
+        showlegend=True,
         annotations=[
             dict(
                 text="Payment<br>Mix",
