@@ -193,22 +193,31 @@ jupyter notebook notebooks/01_sales_cleaning_analysis.ipynb
 
 This project also includes a simple Streamlit dashboard built from the cleaned sales dataset.
 
-The dashboard helps small businesses monitor:
+The dashboard helps small businesses monitor sales performance through:
 
-- Total revenue
-- Number of orders
+- Total net revenue
+- Total orders
 - Average order value
-- Best-selling products
-- Top-performing categories
-- Sales trends over time
-- Customer and regional performance, when available
+- Quantity sold
+- Discounts given
+- Revenue trends over time
+- Top products
+- Best-performing categories
+- Top customers
+- Top cities
+- Sales channels
+- Payment methods
+- Business insights and recommendations
 
-To run the dashboard locally:
+### Dashboard Preview
+
+![Dashboard Preview](reports/figures/dashboard_overview.png)
+
+### How to Run the Dashboard Locally
 
 ```bash
-streamlit run app/dashboard.py
+python -m streamlit run app/dashboard.py
 ```
-
 
 ## Repository Structure
 
