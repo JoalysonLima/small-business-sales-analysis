@@ -218,6 +218,11 @@ The dashboard helps small businesses monitor sales performance through:
 ```bash
 python -m streamlit run app/dashboard.py
 ```
+### Live Dashboard
+
+The interactive dashboard is available here:
+
+[Open the Streamlit Dashboard](https://small-business-sales-analysis.streamlit.app/)
 
 ## Repository Structure
 
