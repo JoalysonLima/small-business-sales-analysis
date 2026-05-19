@@ -473,7 +473,7 @@ st.markdown(
         <div class="header-meta">
             <div class="header-pill">Period: {period_text}</div>
             <div class="header-pill">Dataset: Cleaned sales data</div>
-            <div class="header-pill">Use case: Freelance business analytics</div>
+            <div class="header-pill">Use case: Business analytics</div>
         </div>
     </div>
     """,
@@ -958,5 +958,5 @@ st.markdown("---")
 
 st.caption(
     "Dashboard built with Streamlit, Pandas, and Plotly. "
-    "Designed as a freelance-style business analytics deliverable."
+    "Designed as a business analytics deliverable."
 )
