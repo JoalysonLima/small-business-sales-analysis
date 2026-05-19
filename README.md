@@ -189,6 +189,26 @@ jupyter notebook notebooks/01_sales_cleaning_analysis.ipynb
 
 [View Final Report](reports/final_report.md)
 
+## Interactive Dashboard
+
+This project also includes a simple Streamlit dashboard built from the cleaned sales dataset.
+
+The dashboard helps small businesses monitor:
+
+- Total revenue
+- Number of orders
+- Average order value
+- Best-selling products
+- Top-performing categories
+- Sales trends over time
+- Customer and regional performance, when available
+
+To run the dashboard locally:
+
+```bash
+streamlit run app/dashboard.py
+```
+
 
 ## Repository Structure
 
@@ -202,11 +222,19 @@ small-business-sales-analysis/
 ├── notebooks/
 │   └── 01_sales_cleaning_analysis.ipynb
 │
+├── app/
+│   ├── dashboard.py
+│   └── utils.py
+│
 ├── reports/
 │   ├── figures/
 │   ├── final_report.md
 │   ├── business_insights.md
 │   └── supporting CSV outputs
+│
+├── docs/
+│   ├── dashboard_objective.md
+│   └── dashboard_insights.md
 │
 ├── README.md
 ├── requirements.txt
