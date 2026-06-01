@@ -65,7 +65,8 @@ The project followed these steps:
 7. Business insights and recommendations
 8. Final visualisation selection
 9. Final business report creation
-10. GitHub and portfolio organisation
+10. Interactive dashboard development
+11. GitHub and portfolio organisation
 
 ## Tools Used
 
@@ -74,6 +75,8 @@ The project followed these steps:
 - NumPy
 - matplotlib
 - seaborn
+- Streamlit
+- Plotly
 - Jupyter Notebook
 - Markdown
 
@@ -86,6 +89,7 @@ The project followed these steps:
 - Revenue and product performance charts
 - Business insights and recommendations
 - Final Markdown report
+- Interactive Streamlit dashboard
 
 ## Main Findings
 
@@ -247,7 +251,6 @@ small-business-sales-analysis/
 │   └── supporting CSV outputs
 │
 ├── docs/
-│   ├── dashboard_objective.md
 │   └── dashboard_insights.md
 │
 ├── README.md

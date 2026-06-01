@@ -70,12 +70,12 @@ The business needs to understand its sales performance and answer practical ques
 - Business KPI calculation
 - Business insights and recommendations
 - Final Markdown report
+- Interactive Streamlit dashboard
 
 ### Outside the Scope
 
 - Machine learning
 - Sales forecasting
-- Dashboard development
 - Customer segmentation
 - Profit margin analysis
 - Inventory optimisation
@@ -99,6 +99,7 @@ The project followed these steps:
 8. Generated business insights and recommendations.
 9. Selected final visualisations for reporting.
 10. Created this final Markdown report.
+11. Built an interactive Streamlit dashboard from the cleaned dataset.
 
 ---
 
