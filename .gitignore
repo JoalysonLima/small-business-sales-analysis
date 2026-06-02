@@ -22,6 +22,7 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.log
+~$*.xlsx
 
 # Environment variables
 .env

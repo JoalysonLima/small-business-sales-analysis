@@ -228,6 +228,18 @@ The interactive dashboard is available here:
 
 [Open the Streamlit Dashboard](https://small-business-sales-analysis.streamlit.app/)
 
+## Excel Dashboard
+
+The project also includes a polished Excel dashboard for client-facing reporting:
+
+[Open the Excel Dashboard](reports/excel/small_business_sales_dashboard.xlsx)
+
+Regenerate the workbook from the project root with:
+
+```bash
+python scripts/create_excel_dashboard.py
+```
+
 ## Repository Structure
 
 ```text                                                                 

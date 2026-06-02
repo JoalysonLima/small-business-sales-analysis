@@ -99,6 +99,24 @@ st.markdown(
             border-right: 1px solid {BORDER};
         }}
 
+        section[data-testid="stSidebar"] label,
+        section[data-testid="stSidebar"] p,
+        section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] {{
+            color: {TEXT_MUTED};
+        }}
+
+        section[data-testid="stSidebar"] div[data-baseweb="select"] > div,
+        section[data-testid="stSidebar"] div[data-baseweb="input"] > div {{
+            background-color: #FFFFFF;
+            color: {TEXT_DARK};
+            border-color: {BORDER};
+        }}
+
+        section[data-testid="stSidebar"] span[data-baseweb="tag"] {{
+            background-color: #CCFBF1;
+            color: {PRIMARY_DARK};
+        }}
+
         .main .block-container {{
             padding-top: 2rem;
             padding-bottom: 3rem;
@@ -158,6 +176,14 @@ st.markdown(
             border: 1px solid {BORDER};
             box-shadow: 0px 8px 24px rgba(15, 23, 42, 0.05);
             min-height: 135px;
+        }}
+
+        .kpi-card.secondary {{
+            box-shadow: 0px 4px 16px rgba(15, 23, 42, 0.035);
+        }}
+
+        .kpi-row-spacer {{
+            height: 12px;
         }}
 
         .kpi-label {{
@@ -282,19 +308,14 @@ def apply_plotly_layout(fig: go.Figure, height: int = 420) -> go.Figure:
         plot_bgcolor="white",
         paper_bgcolor="white",
         font=dict(color=TEXT_DARK, family="Arial"),
-        margin=dict(l=20, r=20, t=60, b=40),
+        margin=dict(l=20, r=55, t=28, b=70),
         legend=dict(
             orientation="h",
             yanchor="bottom",
-            y=-0.22,
+            y=-0.28,
             xanchor="center",
             x=0.5,
-            font=dict(size=11),
-        ),
-        title=dict(
-            font=dict(size=17, color=TEXT_DARK),
-            x=0,
-            xanchor="left",
+            font=dict(size=12, color=TEXT_MUTED),
         ),
         hoverlabel=dict(
             bgcolor="white",
@@ -324,13 +345,20 @@ def apply_plotly_layout(fig: go.Figure, height: int = 420) -> go.Figure:
     return fig
 
 
-def render_kpi_card(label: str, value: str, description: str) -> None:
+def render_kpi_card(
+    label: str,
+    value: str,
+    description: str,
+    secondary: bool = False,
+) -> None:
     """
     Render a custom KPI card.
     """
+    card_class = "kpi-card secondary" if secondary else "kpi-card"
+
     st.markdown(
         f"""
-        <div class="kpi-card">
+        <div class="{card_class}">
             <div class="kpi-label">{label}</div>
             <div class="kpi-value">{value}</div>
             <div class="kpi-description">{description}</div>
@@ -378,13 +406,34 @@ filter_options = get_filter_options(df)
 min_date = df["order_date"].min().date()
 max_date = df["order_date"].max().date()
 
-if "date_range" not in st.session_state:
-    st.session_state["date_range"] = (min_date, max_date)
+filter_defaults = {
+    "date_range": (min_date, max_date),
+    "categories": [],
+    "products": [],
+    "cities": [],
+    "sales_channels": [],
+    "payment_methods": [],
+    "discount_status": "All orders",
+}
 
-clear_date_filter = st.sidebar.button("Clear date filter")
 
-if clear_date_filter:
-    st.session_state["date_range"] = (min_date, max_date)
+def reset_filters() -> None:
+    """
+    Reset all sidebar filters to their default values.
+    """
+    for key, value in filter_defaults.items():
+        st.session_state[key] = value
+
+
+for filter_key, default_value in filter_defaults.items():
+    if filter_key not in st.session_state:
+        st.session_state[filter_key] = default_value
+
+st.sidebar.button(
+    "Reset all filters",
+    on_click=reset_filters,
+    use_container_width=True,
+)
 
 selected_date_range = st.sidebar.date_input(
     "Date range",
@@ -402,31 +451,37 @@ else:
 selected_categories = st.sidebar.multiselect(
     "Categories",
     options=filter_options["categories"],
+    key="categories",
 )
 
 selected_products = st.sidebar.multiselect(
     "Products",
     options=filter_options["products"],
+    key="products",
 )
 
 selected_cities = st.sidebar.multiselect(
     "Cities",
     options=filter_options["cities"],
+    key="cities",
 )
 
 selected_channels = st.sidebar.multiselect(
     "Sales channels",
     options=filter_options["sales_channels"],
+    key="sales_channels",
 )
 
 selected_payment_methods = st.sidebar.multiselect(
     "Payment methods",
     options=filter_options["payment_methods"],
+    key="payment_methods",
 )
 
 discount_filter = st.sidebar.selectbox(
     "Discount status",
     options=["All orders", "Only discounted orders", "Only non-discounted orders"],
+    key="discount_status",
 )
 
 if discount_filter == "Only discounted orders":
@@ -480,6 +535,29 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+active_filters = []
+
+if selected_start_date != min_date or selected_end_date != max_date:
+    active_filters.append(
+        f"Period: {selected_start_date:%d %b %Y} - {selected_end_date:%d %b %Y}"
+    )
+
+for filter_label, selected_values in [
+    ("Categories", selected_categories),
+    ("Products", selected_products),
+    ("Cities", selected_cities),
+    ("Channels", selected_channels),
+    ("Payment methods", selected_payment_methods),
+]:
+    if selected_values:
+        active_filters.append(f"{filter_label}: {', '.join(selected_values)}")
+
+if discount_filter != "All orders":
+    active_filters.append(f"Discount status: {discount_filter}")
+
+if active_filters:
+    st.info("Active filters: " + " | ".join(active_filters))
+
 
 if filtered_df.empty:
     st.warning("No data available for the selected filters. Adjust the filters and try again.")
@@ -515,6 +593,8 @@ with kpi_col_3:
         description="Average revenue generated per order.",
     )
 
+st.markdown('<div class="kpi-row-spacer"></div>', unsafe_allow_html=True)
+
 kpi_col_4, kpi_col_5, kpi_col_6 = st.columns(3)
 
 with kpi_col_4:
@@ -522,6 +602,7 @@ with kpi_col_4:
         label="Quantity Sold",
         value=format_number(kpis["total_quantity_sold"]),
         description="Total number of units sold.",
+        secondary=True,
     )
 
 with kpi_col_5:
@@ -529,6 +610,7 @@ with kpi_col_5:
         label="Discount Given",
         value=format_currency(kpis["total_discount_given"]),
         description="Total discount amount applied to sales.",
+        secondary=True,
     )
 
 with kpi_col_6:
@@ -536,6 +618,7 @@ with kpi_col_6:
         label="Discount Rate",
         value=format_percentage(kpis["discount_rate"]),
         description="Discounts as a percentage of gross revenue.",
+        secondary=True,
     )
 
 
@@ -570,7 +653,6 @@ fig_monthly.add_trace(
 )
 
 fig_monthly.update_layout(
-    title="Net Revenue Over Time",
     xaxis_title="Month",
     yaxis_title="Net revenue",
 )
@@ -603,12 +685,12 @@ with left_col:
         orientation="h",
         text="net_revenue",
         color_discrete_sequence=[PRIMARY],
-        title="Net Revenue by Category",
     )
 
     fig_category.update_traces(
         texttemplate="£%{text:,.0f}",
         textposition="outside",
+        cliponaxis=False,
         hovertemplate="<b>%{y}</b><br>Net revenue: £%{x:,.2f}<extra></extra>",
     )
 
@@ -638,7 +720,6 @@ with right_col:
         values="net_revenue",
         hole=0.62,
         color_discrete_sequence=CHART_COLORS,
-        title="Revenue Share by Sales Channel",
     )
 
     fig_channel.update_traces(
@@ -665,6 +746,9 @@ with right_col:
 
     st.plotly_chart(fig_channel, use_container_width=True)
 
+    if len(sales_channel_performance) == 1:
+        st.caption("The selected filters contain one sales channel, so its share is 100%.")
+
 
 # ---------------------------------------------------------------------
 # Product rankings
@@ -687,12 +771,12 @@ with product_col_1:
         orientation="h",
         text="net_revenue",
         color_discrete_sequence=[SECONDARY],
-        title="Top 10 Products by Net Revenue",
     )
 
     fig_top_products_revenue.update_traces(
         texttemplate="£%{text:,.0f}",
         textposition="outside",
+        cliponaxis=False,
         hovertemplate="<b>%{y}</b><br>Net revenue: £%{x:,.2f}<extra></extra>",
     )
 
@@ -723,12 +807,12 @@ with product_col_2:
         orientation="h",
         text="quantity_sold",
         color_discrete_sequence=["#14B8A6"],
-        title="Top 10 Products by Quantity Sold",
     )
 
     fig_top_products_quantity.update_traces(
         texttemplate="%{text:,.0f}",
         textposition="outside",
+        cliponaxis=False,
         hovertemplate="<b>%{y}</b><br>Quantity sold: %{x:,.0f}<extra></extra>",
     )
 
@@ -763,12 +847,12 @@ with geo_col:
         orientation="h",
         text="net_revenue",
         color_discrete_sequence=[PRIMARY_DARK],
-        title="Top Cities by Net Revenue",
     )
 
     fig_city.update_traces(
         texttemplate="£%{text:,.0f}",
         textposition="outside",
+        cliponaxis=False,
         hovertemplate="<b>%{y}</b><br>Net revenue: £%{x:,.2f}<extra></extra>",
     )
 
@@ -799,12 +883,12 @@ with customer_col:
         orientation="h",
         text="net_revenue",
         color_discrete_sequence=["#475569"],
-        title="Top Customers by Net Revenue",
     )
 
     fig_customers.update_traces(
         texttemplate="£%{text:,.0f}",
         textposition="outside",
+        cliponaxis=False,
         hovertemplate="<b>%{y}</b><br>Net revenue: £%{x:,.2f}<extra></extra>",
     )
 
@@ -841,12 +925,12 @@ with discount_col:
         orientation="h",
         text="discount_rate",
         color_discrete_sequence=[WARNING],
-        title="Discount Rate by Category",
     )
 
     fig_discount.update_traces(
         texttemplate="%{text:.1%}",
         textposition="outside",
+        cliponaxis=False,
         hovertemplate="<b>%{y}</b><br>Discount rate: %{x:.2%}<extra></extra>",
     )
 
@@ -876,7 +960,6 @@ with payment_col:
         values="net_revenue",
         hole=0.62,
         color_discrete_sequence=CHART_COLORS,
-        title="Revenue Share by Payment Method",
     )
 
     fig_payment.update_traces(
@@ -902,6 +985,9 @@ with payment_col:
     fig_payment = apply_plotly_layout(fig_payment, height=410)
 
     st.plotly_chart(fig_payment, use_container_width=True)
+
+    if len(payment_performance) == 1:
+        st.caption("The selected filters contain one payment method, so its share is 100%.")
 
 
 # ---------------------------------------------------------------------
