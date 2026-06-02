@@ -230,7 +230,7 @@ The interactive dashboard is available here:
 
 ## Excel Dashboard
 
-The project also includes a polished Excel dashboard for client-facing reporting. It includes interactive dropdown filters for the reporting period, category, sales channel, city, and product so the KPI cards and charts update directly in Excel:
+The project also includes a polished Excel dashboard for client-facing reporting. It includes validated date inputs plus interactive dropdown filters for category, sales channel, city, and product so the KPI cards, charts, and selected-filter insights update directly in Excel:
 
 [Open the Excel Dashboard](reports/excel/small_business_sales_dashboard.xlsx)
 

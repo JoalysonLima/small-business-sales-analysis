@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import sys
-from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
@@ -112,7 +111,7 @@ def build_summary_tables(df: pd.DataFrame) -> dict[str, pd.DataFrame]:
         ].rename(columns={
             "category": "Category", "gross_revenue": "Gross Revenue",
             "discount_amount": "Discount Amount", "net_revenue": "Net Revenue",
-            "discount_rate": "Average Discount Rate",
+            "discount_rate": "Overall Discount Rate",
         }),
     }
 
@@ -186,7 +185,7 @@ def write_summary(writer: pd.ExcelWriter, tables: dict[str, pd.DataFrame], forma
         ("city", "Revenue by City", 20, 7, "CityRevenue"),
         ("products", "Top 10 Products by Revenue", 29, 0, "TopProductsRevenue"),
         ("customers", "Top 10 Customers by Revenue", 43, 0, "TopCustomersRevenue"),
-        ("discount", "Average Discount by Category", 43, 7, "CategoryDiscount"),
+        ("discount", "Overall Discount Rate by Category", 43, 7, "CategoryDiscount"),
     ]
     locations = {}
     for key, title, row, col, table_name in sections:
@@ -250,21 +249,17 @@ def write_lists(writer: pd.ExcelWriter, df: pd.DataFrame, formats: dict[str, obj
     sheet = writer.book.add_worksheet("Lists")
     writer.sheets["Lists"] = sheet
     lists = {
-        "dates": df["order_date"].drop_duplicates().sort_values().dt.to_pydatetime().tolist(),
         "categories": ["All", *sorted(df["category"].dropna().unique().tolist())],
         "sales_channels": ["All", *sorted(df["sales_channel"].dropna().unique().tolist())],
         "cities": ["All", *sorted(df["city"].dropna().unique().tolist())],
         "products": ["All", *sorted(df["product_name"].dropna().unique().tolist())],
     }
-    headers = ["Dates", "Categories", "Sales Channels", "Cities", "Products"]
+    headers = ["Categories", "Sales Channels", "Cities", "Products"]
     sheet.write_row(0, 0, headers)
     references = {}
     for column, (key, values) in enumerate(lists.items()):
         for row, value in enumerate(values, start=1):
-            if isinstance(value, datetime):
-                sheet.write_datetime(row, column, value, formats["date"])
-            else:
-                sheet.write(row, column, value)
+            sheet.write(row, column, value)
         references[key] = f"=Lists!${chr(65 + column)}$2:${chr(65 + column)}${len(values) + 1}"
     sheet.hide()
     return references
@@ -299,9 +294,13 @@ def write_filtered_summary(writer: pd.ExcelWriter, df: pd.DataFrame, formats: di
     for row in range(1, min(10, len(products)) + 1):
         excel_row = row + 1
         rank = row
-        rank_key_formula = f"=LARGE($O$2:$O${product_last_row},{rank})"
-        product_formula = f"=INDEX($M$2:$M${product_last_row},MATCH(R{excel_row},$O$2:$O${product_last_row},0))"
-        revenue_formula = f"=INDEX($N$2:$N${product_last_row},MATCH(P{excel_row},$M$2:$M${product_last_row},0))"
+        rank_key_formula = f'=IFERROR(LARGE($O$2:$O${product_last_row},{rank}),"")'
+        product_formula = (
+            f'=IFERROR(IF(INDEX($N$2:$N${product_last_row},MATCH(R{excel_row},'
+            f'$O$2:$O${product_last_row},0))<=0,"",INDEX($M$2:$M${product_last_row},'
+            f'MATCH(R{excel_row},$O$2:$O${product_last_row},0))),"")'
+        )
+        revenue_formula = f'=IF(P{excel_row}="","",INDEX($N$2:$N${product_last_row},MATCH(P{excel_row},$M$2:$M${product_last_row},0)))'
         cached_product = ranked_products[row - 1]
         cached_revenue = float(product_revenue[cached_product])
         cached_rank_key = cached_revenue + (products.index(cached_product) + 2) / 1000000000
@@ -350,6 +349,10 @@ def add_chart(
     position: str,
     color: str | None = None,
     major_unit: int | None = None,
+    x_scale: float = 1.12,
+    y_scale: float = 0.70,
+    category_label_size: int | None = None,
+    plotarea_x: float | None = None,
 ) -> None:
     """Add a consistently styled chart linked to a Summary table."""
     header_row, start_col, rows = locations[key]
@@ -371,7 +374,10 @@ def add_chart(
     chart.add_series(series)
     chart.set_title({"name": title, "name_font": {"size": 12, "bold": True, "color": COLORS["text"]}})
     chart.set_chartarea({"border": {"none": True}, "fill": {"color": "#FFFFFF"}})
-    chart.set_plotarea({"border": {"none": True}, "fill": {"color": "#FFFFFF"}})
+    plotarea = {"border": {"none": True}, "fill": {"color": "#FFFFFF"}}
+    if plotarea_x is not None:
+        plotarea["layout"] = {"x": plotarea_x, "y": 0.28, "width": 0.70, "height": 0.58}
+    chart.set_plotarea(plotarea)
     chart.set_legend({"none": True})
     if chart_type == "bar":
         chart.set_x_axis({
@@ -379,14 +385,17 @@ def add_chart(
             "major_unit": major_unit,
             "major_gridlines": {"visible": False},
         })
-        chart.set_y_axis({"reverse": True, "interval_unit": 1, "major_gridlines": {"visible": False}})
+        category_axis = {"reverse": True, "interval_unit": 1, "major_gridlines": {"visible": False}}
+        if category_label_size:
+            category_axis["num_font"] = {"size": category_label_size}
+        chart.set_y_axis(category_axis)
     elif chart_type == "line":
         chart.set_y_axis({"num_format": GBP_ROUNDED_FORMAT, "major_gridlines": {"visible": True, "line": {"color": COLORS["border"]}}})
         chart.set_x_axis({"major_gridlines": {"visible": False}})
     elif chart_type == "doughnut":
         chart.set_hole_size(62)
         chart.set_legend({"position": "bottom"})
-    sheet.insert_chart(position, chart, {"x_scale": 1.12, "y_scale": 0.70})
+    sheet.insert_chart(position, chart, {"x_scale": x_scale, "y_scale": y_scale})
 
 
 def write_dashboard(writer: pd.ExcelWriter, sheet, df: pd.DataFrame, locations, list_references, formats: dict[str, object]) -> None:
@@ -400,25 +409,40 @@ def write_dashboard(writer: pd.ExcelWriter, sheet, df: pd.DataFrame, locations, 
     sheet.set_paper(9)
     sheet.fit_to_pages(1, 1)
     sheet.set_margins(left=0.25, right=0.25, top=0.35, bottom=0.35)
-    sheet.print_area(0, 0, 66, 15)
+    sheet.print_area(0, 0, 64, 15)
     sheet.center_horizontally()
     sheet.merge_range("A1:P1", "Small Business Sales Dashboard", formats["title"])
     period = f"Reporting period: {df['order_date'].min():%d %b %Y} to {df['order_date'].max():%d %b %Y}"
     sheet.merge_range("A2:P2", period, formats["subtitle"])
     sheet.merge_range("A4:P4", "Interactive Filters", formats["section"])
-    filter_controls = [
-        ("A5:B5", "A6:B6", "START DATE", df["order_date"].min().to_pydatetime(), list_references["dates"], formats["filter_date"]),
-        ("C5:D5", "C6:D6", "END DATE", df["order_date"].max().to_pydatetime(), list_references["dates"], formats["filter_date"]),
-        ("E5:G5", "E6:G6", "CATEGORY", "All", list_references["categories"], formats["filter_value"]),
-        ("H5:J5", "H6:J6", "SALES CHANNEL", "All", list_references["sales_channels"], formats["filter_value"]),
-        ("K5:M5", "K6:M6", "CITY", "All", list_references["cities"], formats["filter_value"]),
-        ("N5:P5", "N6:P6", "PRODUCT", "All", list_references["products"], formats["filter_value"]),
+    min_date = df["order_date"].min().to_pydatetime()
+    max_date = df["order_date"].max().to_pydatetime()
+    date_controls = [
+        ("A5:B5", "A6:B6", "START DATE", min_date),
+        ("C5:D5", "C6:D6", "END DATE", max_date),
     ]
-    for label_range, value_range, label, value, source, value_format in filter_controls:
+    for label_range, value_range, label, value in date_controls:
+        value_cell = value_range.split(":")[0]
         sheet.merge_range(label_range, label, formats["filter_label"])
-        sheet.merge_range(value_range, value, value_format)
+        sheet.merge_range(value_range, value, formats["filter_date"])
+        sheet.data_validation(value_cell, {
+            "validate": "date", "criteria": "between", "minimum": min_date, "maximum": max_date,
+            "input_title": label.title(), "input_message": "Enter a date within the reporting period.",
+            "error_title": "Invalid reporting date", "error_message": "Use a date within the available reporting period.",
+        })
+    filter_controls = [
+        ("E5:G5", "E6:G6", "CATEGORY", "All", list_references["categories"]),
+        ("H5:J5", "H6:J6", "SALES CHANNEL", "All", list_references["sales_channels"]),
+        ("K5:M5", "K6:M6", "CITY", "All", list_references["cities"]),
+        ("N5:P5", "N6:P6", "PRODUCT", "All", list_references["products"]),
+    ]
+    for label_range, value_range, label, value, source in filter_controls:
+        sheet.merge_range(label_range, label, formats["filter_label"])
+        sheet.merge_range(value_range, value, formats["filter_value"])
         sheet.data_validation(value_range.split(":")[0], {"validate": "list", "source": source})
-    sheet.merge_range("A7:P7", "Change any dropdown selection to update the KPI cards and charts. Choose All to include every value in a category.", formats["filter_note"])
+    sheet.conditional_format("A6:B6", {"type": "formula", "criteria": "=$A$6>$C$6", "format": workbook.add_format({"bg_color": "#FEE2E2", "font_color": "#B91C1C"})})
+    sheet.conditional_format("C6:D6", {"type": "formula", "criteria": "=$A$6>$C$6", "format": workbook.add_format({"bg_color": "#FEE2E2", "font_color": "#B91C1C"})})
+    sheet.merge_range("A7:P7", "Enter a reporting date range or change a dropdown. KPI cards, charts, and insights update automatically. Use All for a full segment view.", formats["filter_note"])
     kpis = calculate_kpis(df)
     kpi_formulas = get_kpi_formulas(df)
     cards = [
@@ -427,20 +451,53 @@ def write_dashboard(writer: pd.ExcelWriter, sheet, df: pd.DataFrame, locations, 
         ("G9:I11", "AVERAGE ORDER VALUE", kpi_formulas["average_order_value"], kpis["average_order_value"], formats["card_currency"]),
         ("J9:L11", "TOTAL CUSTOMERS", kpi_formulas["total_customers"], int(df["customer_id"].nunique()), formats["card_integer"]),
         ("M9:N11", "TOTAL UNITS SOLD", kpi_formulas["total_units_sold"], kpis["total_quantity_sold"], formats["card_integer"]),
-        ("O9:P11", "AVERAGE DISCOUNT RATE", kpi_formulas["average_discount_rate"], kpis["discount_rate"], formats["card_percent"]),
+        ("O9:P11", "OVERALL DISCOUNT RATE", kpi_formulas["average_discount_rate"], kpis["discount_rate"], formats["card_percent"]),
     ]
     for cell_range, label, formula, cached_value, value_format in cards:
         add_kpi_card(sheet, cell_range, label, formula, cached_value, formats["card_label"], value_format)
-    add_chart(workbook, sheet, locations, "monthly", "Monthly Net Revenue Trend", "line", "A14", COLORS["primary"])
-    add_chart(workbook, sheet, locations, "category", "Revenue by Category", "bar", "I14", COLORS["primary"], major_unit=40000)
-    add_chart(workbook, sheet, locations, "channel", "Revenue by Sales Channel", "doughnut", "A30")
-    add_chart(workbook, sheet, locations, "products", "Top 10 Products by Revenue", "bar", "I30", COLORS["secondary"], major_unit=30000)
-    add_chart(workbook, sheet, locations, "city", "Revenue by City", "bar", "A46", COLORS["primary_dark"], major_unit=20000)
-    sheet.merge_range("I46:P46", "Key Business Insights (Overall Dataset)", formats["section"])
-    for offset, insight in enumerate(generate_business_insights(df)[:6]):
-        start_row = 47 + (offset * 3)
-        sheet.merge_range(start_row - 1, 8, start_row + 1, 15, f"- {insight}", formats["insight"])
-    sheet.merge_range("A67:P67", "Source: data/processed/small_business_sales_clean.csv | Revenue values are shown after discounts.", workbook.add_format({"font_size": 9, "font_color": COLORS["muted"], "italic": True}))
+    add_chart(workbook, sheet, locations, "monthly", "Monthly Net Revenue (Selected Filters)", "line", "A13", COLORS["primary"], y_scale=0.70)
+    add_chart(workbook, sheet, locations, "category", "Net Revenue by Category", "bar", "I13", COLORS["primary"], major_unit=40000, y_scale=0.70)
+    add_chart(workbook, sheet, locations, "channel", "Net Revenue by Sales Channel", "doughnut", "A27", y_scale=0.78)
+    add_chart(workbook, sheet, locations, "products", "Top Products by Net Revenue", "bar", "I27", COLORS["secondary"], major_unit=30000, y_scale=0.88, category_label_size=9, plotarea_x=0.25)
+    add_chart(workbook, sheet, locations, "city", "Net Revenue by City", "bar", "B45", COLORS["primary_dark"], major_unit=20000, x_scale=1.08, y_scale=0.88, category_label_size=9, plotarea_x=0.22)
+    sheet.merge_range("I45:P45", "Key Business Insights (Selected Filters)", formats["section"])
+    category_last_row = df["category"].dropna().nunique() + 1
+    channel_last_row = df["sales_channel"].dropna().nunique() + 1
+    dynamic_insights = [
+        (
+            '=IF($A$10=0,"No matching sales data. Adjust filters to broaden the selection.",'
+            f'"Top category: "&IFERROR(INDEX(Filtered_Summary!$D$2:$D${category_last_row},MATCH(MAX(Filtered_Summary!$E$2:$E${category_last_row}),Filtered_Summary!$E$2:$E${category_last_row},0)),"N/A")'
+            f'&" ("&ROUND(IFERROR(MAX(Filtered_Summary!$E$2:$E${category_last_row})/$A$10,0)*100,1)&"% of net revenue).")'
+        ),
+        (
+            '=IF($A$10=0,"No product insight is available for the selected filters.",'
+            '"Top product: "&IFERROR(Filtered_Summary!$P$2,"N/A")'
+            '&" ("&ROUND(IFERROR(Filtered_Summary!$Q$2/$A$10,0)*100,1)&"% of net revenue).")'
+        ),
+        (
+            '=IF($A$10=0,"No channel insight is available for the selected filters.",'
+            f'"Leading channel: "&IFERROR(INDEX(Filtered_Summary!$G$2:$G${channel_last_row},MATCH(MAX(Filtered_Summary!$H$2:$H${channel_last_row}),Filtered_Summary!$H$2:$H${channel_last_row},0)),"N/A")'
+            f'&" ("&ROUND(IFERROR(MAX(Filtered_Summary!$H$2:$H${channel_last_row})/$A$10,0)*100,1)&"% of net revenue).")'
+        ),
+        (
+            '=IF($A$10=0,"No discount insight is available for the selected filters.",'
+            '"Overall discount rate: "&ROUND($O$10*100,1)&"% of gross revenue.")'
+        ),
+    ]
+    cached_insights = [
+        generate_business_insights(df)[0],
+        generate_business_insights(df)[1],
+        generate_business_insights(df)[3],
+        f"Overall discount rate: {kpis['discount_rate']:.1%} of gross revenue.",
+    ]
+    for offset, (formula, cached_insight) in enumerate(zip(dynamic_insights, cached_insights)):
+        start_row = 46 + (offset * 4)
+        sheet.merge_range(start_row - 1, 8, start_row + 2, 15, "", formats["insight"])
+        sheet.write_formula(start_row - 1, 8, formula, formats["insight"], cached_insight)
+    unknown_city_records = int(df["city"].fillna("Unknown").eq("Unknown").sum())
+    if unknown_city_records:
+        sheet.merge_range("A64:P64", f"Data quality note: {unknown_city_records:,} records use Unknown city and remain included in dashboard totals.", formats["filter_note"])
+    sheet.merge_range("A65:P65", "Source: data/processed/small_business_sales_clean.csv | Revenue values are shown after discounts.", workbook.add_format({"font_size": 9, "font_color": COLORS["muted"], "italic": True}))
 
 
 def write_data_dictionary(writer: pd.ExcelWriter, formats: dict[str, object]) -> None:
